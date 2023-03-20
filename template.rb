@@ -180,7 +180,7 @@ def add_bullet
 end
 
 def setup_staging
-  inject_into_file 'app/controllers/application_controller.rb', after: %r{class ApplicationController < ActionController} do
+  inject_into_file 'app/controllers/application_controller.rb', after: %r{class ApplicationController < ActionController\n} do
     <<-RUBY
     prepend_before_action :http_basic_authenticate
     def http_basic_authenticate
