@@ -1,0 +1,133 @@
+require:
+  - rubocop-rails
+  - rubocop-performance
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.1.2
+  NewCops: enable
+  Exclude:
+    - db/schema.rb
+    - bin/**/*
+    - vendor/**/*
+    - log/**/*
+    - tmp/**/*
+    - config/**/*
+    - db/migrate/**/*
+
+# Allowed environments
+Rails/UnknownEnv:
+  Environments:
+    - production
+    - staging
+    - development
+    - test
+
+# Nested module syntax is fine, just be careful with
+# scoping, i.e. on include
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+# Never break line due to length, except in data
+# vim: set wrap
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - spec/**/*
+
+# Rails controllers and such
+Metrics/MethodLength:
+  Max: 30
+  Exclude:
+    - "db/migrate/20221123074010_create_active_storage_tables.active_storage.rb"
+
+# Disable BlockLength cop only for spec directory
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+    - app/admin/**/*
+    - config/**/*
+
+# Use and/or for flow control, but not in boolean assignments
+# http://devblog.avdi.org/2010/08/02/using-and-and-or-in-ruby/
+Style/AndOr:
+  Enabled: false
+
+# Use not with .select and flow control
+Style/Not:
+  Enabled: false
+
+# Use { only for single line blocks, but allow block content on its own line to keep line length short
+# each { |l|
+#   l.apply_long_method_name
+# }
+Style/BlockDelimiters:
+  Enabled: false
+
+# Do not use lambda
+Style/Lambda:
+  Enabled: false
+
+# Allow TODO instead of requiring TODO:
+Style/CommentAnnotation:
+  Enabled: false
+
+# Do not write 1234 as 1_234
+Style/NumericLiterals:
+  Enabled: false
+
+# Relax for controllers with multiple formats
+Metrics/AbcSize:
+  Max: 40
+
+# Too spammy
+Style/Documentation:
+  Enabled: false
+
+# Use raise if you expect to catch the expception
+Style/SignalException:
+  Enabled: false
+
+# False positive for if var = value
+Lint/AssignmentInCondition:
+  Enabled: false
+
+# Too much manual horizontal alignment
+Layout/HashAlignment:
+  Enabled: false
+
+Layout/ArrayAlignment:
+  Enabled: false
+
+Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+
+# Vim prefers fixed indent, avoid manual vertical alignment
+Layout/ParameterAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+# Load order is important
+Bundler/OrderedGems:
+  Enabled: false
+
+Rails/HttpPositionalArguments:
+  Enabled: false
+
+Metrics/ClassLength:
+  Max: 150
+
+RSpec/ImplicitExpect:
+  EnforcedStyle: should
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+
+Naming/VariableNumber:
+  EnforcedStyle: snake_case
+
+RSpec/NestedGroups:
+  Max: 4
