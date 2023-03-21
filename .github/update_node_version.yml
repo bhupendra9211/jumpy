@@ -1,0 +1,16 @@
+name: Oxmart Lint and Tests
+on:
+  push:
+    branches:
+      - develop
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  linter:
+    name: Update node version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create node-version
+        run: |
+          curl https://nodejs.org/en/download | grep -oE 'Latest LTS Version<!-- -->: <strong>[0-9]+\.[0-9]+\.[0-9]+</strong>' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' > .node-version

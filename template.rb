@@ -80,7 +80,7 @@ def add_users
   generate "devise:install"
 
   environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: 'development'
-  generate :devise, "User", "first_name", "last_name", "email", "phone" "admin:boolean"
+  generate :devise, "User", "first_name", "last_name", "phone", "admin:boolean"
 
   # Set admin default to false
   in_root do
@@ -102,6 +102,8 @@ def copy_templates
   # directory "app", force: true
 
   copy_file "app/models/concerns/uid.rb"
+  copy_file "app/validators/password_validator.rb"
+  inject_into_file("app/models/user.rb", "validates :password, password: true\n", after: ":validatable\n")
 
   directory "app", force: true
   inject_into_file("app/models/user.rb", "include Uid\n", before: "devise :database_authenticatable")
@@ -193,6 +195,10 @@ def setup_staging
   end
 end
 
+def add_node_version
+  run "curl https://nodejs.org/en/download | grep -oE 'Latest LTS Version<!-- -->: <strong>[0-9]+\.[0-9]+\.[0-9]+</strong>' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' > .node-version"
+end
+
 def add_gem(name, *options)
   gem(name, *options) unless gem_exists?(name)
 end
@@ -206,29 +212,37 @@ unless rails_7_or_newer?
 end
 
 add_template_repository_to_source_path
+add_node_version
 add_gems
 add_simple_form
 after_bundle do
   set_application_name
   
   add_users
+  rails_command "g migration AddUidToUsers uid:string:uniq"
+  rails_command "g migration AddSlugToUsers slug:uniq"
+  # gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
+  gsub_file(Dir["db/migrate/**/*uid_to_users.rb"].first, /:uid, :string/, ":uid, :string, after: :id")
   
   add_delayed_job
   add_whenever
-  
   
   add_sitemap
 
   rails_command "active_storage:install"
   run "bundle lock --add-platform x86_64-linux"
   add_rspec
+  gsub_file("spec/rails_helper.rb", "# Dir[Rails.root.join('spec', 'support'", "Dir[Rails.root.join('spec', 'support'")
   copy_templates
   add_friendly_id
   add_rollbar
   add_letter_opener
   add_bullet
+  
 
   setup_staging
+
+  add_node_version
   
   
 
@@ -260,3 +274,7 @@ after_bundle do
   say "  gem install foreman"
   say "  bin/dev"
 end
+
+
+# add node version
+# add ruby version
