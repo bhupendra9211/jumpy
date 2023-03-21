@@ -16,7 +16,7 @@ jobs:
         run: |
           curl https://nodejs.org/en/download | grep -oE 'Latest LTS Version<!-- -->: <strong>[0-9]+\.[0-9]+\.[0-9]+</strong>' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' > .node-version
 
-       - uses: EndBug/add-and-commit@v7
+      - uses: EndBug/add-and-commit@v7
         with:
           add: '.node-version'
           author_name: Aadesh Shrestha
