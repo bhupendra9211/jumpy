@@ -4,5 +4,5 @@
 
 
 ### Requirements
-- Node version >= [18.15.0](./node-version)
+- Node version >= [18.15.0](./.node-version)
 
