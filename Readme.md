@@ -4,4 +4,5 @@
 
 
 ### Requirements
-- Node version 18.15.0
+- Node version >= [18.15.0](./node-version)
+
