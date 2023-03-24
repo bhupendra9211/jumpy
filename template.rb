@@ -1,7 +1,8 @@
 require "fileutils"
 require "shellwords"
+require "pry"
 
-
+@model_name = ""
 
 # Copied from: https://github.com/mattbrictson/rails-template
 # Add this template directory to source_paths so that Thor actions like
@@ -36,7 +37,6 @@ def rails_7_or_newer?
 end
 
 def add_gems
-    add_gem 'devise', '~> 4.9'
     add_gem 'delayed_job_active_record', '~> 4.1', '>= 4.1.7'
     add_gem 'friendly_id', '~> 5.5'
     add_gem 'name_of_person', '~> 1.1'
@@ -66,7 +66,6 @@ def add_gems
     add_gem 'vcr', '~> 6.1', group: [:test]
     add_gem 'webmock', '~> 3.18', group: [:test]
     add_gem 'simplecov', '~> 0.21.2', require: false, group: [:test]
-  
 end
 
 def set_application_name
@@ -76,23 +75,33 @@ def set_application_name
 end
 
 def add_users
-  route "root to: 'home#index'"
-  generate "devise:install"
+  if yes?("Would you like to install Devise for user management ?")
+    add_gem 'devise', '~> 4.9'
+    generate "devise:install"
+    @model_name = ask("What would you like the user model to be called? [user]")
+    say "Fields first_name, last_name, phone, admin would be created. If unneccessary please remove from migration file."
+    @model_name = "user" if @model_name.blank?
+    route "root to: 'home#index'"
+    environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: 'development'
+    generate :devise, @model_name, "first_name", "last_name", "phone", "admin:boolean"
 
-  environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: 'development'
-  generate :devise, "User", "first_name", "last_name", "phone", "admin:boolean"
+    # Set admin default to false
+    in_root do
+      migration = Dir.glob("db/migrate/*").max_by{ |f| File.mtime(f) }
+      gsub_file migration, /:admin/, ":admin, default: false"
+    end
 
-  # Set admin default to false
-  in_root do
-    migration = Dir.glob("db/migrate/*").max_by{ |f| File.mtime(f) }
-    gsub_file migration, /:admin/, ":admin, default: false"
+    if Gem::Requirement.new("> 5.2").satisfied_by? rails_version
+      gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
+    end
+
+    rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
+    rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
+    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string, after: :id")
+
+    
+    inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
   end
-
-  if Gem::Requirement.new("> 5.2").satisfied_by? rails_version
-    gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
-  end
-
-  # inject_into_file("app/models/user.rb", "omniauthable, :", after: "devise :")
 end
 
 def copy_templates
@@ -101,23 +110,19 @@ def copy_templates
 
   # directory "app", force: true
 
-  copy_file "app/models/concerns/uid.rb"
+  
   copy_file "app/validators/password_validator.rb"
   inject_into_file("app/models/user.rb", "validates :password, password: true\n", after: ":validatable\n")
 
   directory "app", force: true
-  inject_into_file("app/models/user.rb", "include Uid\n", before: "devise :database_authenticatable")
+  
   
 
   route "get '/terms', to: 'home#terms'"
   route "get '/privacy', to: 'home#privacy'"
 
   copy_file ".rubocop.yml"
-  copy_file "spec/support/database_cleaner.rb"
-  copy_file "spec/support/devise.rb"
-  copy_file "spec/support/shoulda_matcher.rb"
-  copy_file "spec/support/vcr_setup.rb"
-  copy_file "spec/spec_helper.rb", force: true
+  
   copy_file ".erb-lint.yml"
 end
 
@@ -134,7 +139,7 @@ def add_friendly_id
   generate "friendly_id"
   # insert_into_file(Dir["db/migrate/**/*friendly_id_slugs.rb"].first, "[5.2]", after: "ActiveRecord::Migration")
   puts "*"*50
-  inject_into_file("app/models/user.rb","extend FriendlyId\nfriendly_id :first_name, use: :slugged\n", after: "include Uid\n" )
+  inject_into_file("app/models/#{@model_name.downcase}.rb","extend FriendlyId\nfriendly_id :first_name, use: :slugged\n", after: "include Uid\n" )
   puts "*"*50
 end
 
@@ -160,7 +165,19 @@ end
 
 def add_rspec
   generate "rspec:install"
-  generate "rspec:model user"
+  # generate "rspec:model #{model}"
+
+  files = Dir['app/models/*rb']
+  models = files.map{ |m| File.basename(m, '.rb').camelize}
+  models = models.reject {|e| e == "ApplicationRecord"}
+  models.each {|m| generate "rspec:model #{m}"}
+  gsub_file("spec/rails_helper.rb", "# Dir[Rails.root.join('spec', 'support'", "Dir[Rails.root.join('spec', 'support'")
+  # copy spec helper here
+  copy_file "spec/support/database_cleaner.rb"
+  copy_file "spec/support/devise.rb"
+  copy_file "spec/support/shoulda_matcher.rb"
+  copy_file "spec/support/vcr_setup.rb"
+  copy_file "spec/spec_helper.rb", force: true
 end
 
 def add_letter_opener
@@ -199,6 +216,20 @@ def add_node_version
   run "curl https://nodejs.org/en/download | grep -oE 'Latest LTS Version<!-- -->: <strong>[0-9]+\.[0-9]+\.[0-9]+</strong>' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' > .node-version"
 end
 
+def add_smtp_setting
+  action_mailer = """ActionMailer::Base.smtp_settings = {
+    user_name: ENV['SMTP_USER_NAME'] || 'apikey', # This is the string literal 'apikey', NOT the ID of your API key
+    password: ENV['SMTP_PASSWORD'],
+    # This is the secret sendgrid API key which was issued during API key creation
+    domain: 'yourdomain.com', # Change the domain to your website
+    address: 'smtp.sendgrid.net',
+    port: 587,
+    authentication: :plain,
+    enable_starttls_auto: true
+  }\n"""
+  append_file "config/environment.rb", action_mailer
+end
+
 def add_gem(name, *options)
   gem(name, *options) unless gem_exists?(name)
 end
@@ -217,34 +248,27 @@ add_gems
 add_simple_form
 after_bundle do
   set_application_name
+
+  copy_file "app/models/concerns/uid.rb"
   
   add_users
-  rails_command "g migration AddUidToUsers uid:string:uniq"
-  rails_command "g migration AddSlugToUsers slug:uniq"
-  # gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
-  gsub_file(Dir["db/migrate/**/*uid_to_users.rb"].first, /:uid, :string/, ":uid, :string, after: :id")
-  
+  add_rspec
+  add_friendly_id
   add_delayed_job
   add_whenever
-  
   add_sitemap
-
   rails_command "active_storage:install"
   run "bundle lock --add-platform x86_64-linux"
-  add_rspec
-  gsub_file("spec/rails_helper.rb", "# Dir[Rails.root.join('spec', 'support'", "Dir[Rails.root.join('spec', 'support'")
+  # gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
+  
   copy_templates
-  add_friendly_id
+  
   add_rollbar
   add_letter_opener
   add_bullet
-  
-
   setup_staging
-
   add_node_version
-  
-  
+  add_smtp_setting
 
   unless ENV["SKIP_GIT"]
     git :init
@@ -278,3 +302,6 @@ end
 
 # add node version
 # add ruby version
+
+
+# https://namespace-inc.atlassian.net/wiki/spaces/NI/pages/2267971585/Ruby+on+Rails+-+Validators#Katakana-name
