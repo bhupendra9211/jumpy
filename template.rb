@@ -39,33 +39,28 @@ end
 def add_gems
     add_gem 'delayed_job_active_record', '~> 4.1', '>= 4.1.7'
     add_gem 'friendly_id', '~> 5.5'
-    add_gem 'name_of_person', '~> 1.1'
-    add_gem 'simple_form', '~> 5.1'
+    add_gem 'simple_form', '~> 5.2'
     add_gem 'sitemap_generator', '~> 6.3'
-    add_gem 'rollbar', '~> 3.3'
+    add_gem 'rollbar', '~> 3.4'
     
-    add_gem 'whenever', require: false
-
-    add_gem "dotenv-rails", "~> 2.7", groups: [:development, :test]
-    add_gem "rspec-rails", '~> 6.0', '>= 6.0.1'
+    add_gem "rspec-rails", '~> 6.0', '>= 6.0.2'
     add_gem "factory_bot_rails", '~> 6.2'
     add_gem "ffaker", '~> 2.21'
-    add_gem "rubycritic", '~> 4.7', group: [:development]
-    add_gem "rubocop", '~> 1.48', '>= 1.48.1', group: [:development]
-    add_gem "rubocop-rails", '~> 2.18', group: [:development]
-    add_gem "rubocop-performance", '~> 1.16', group: [:development]
-    add_gem "rubocop-rspec", '~> 2.19', group: [:development]
+    add_gem 'rubycritic', '~> 4.8', '>= 4.8.1', group: [:development]
+    add_gem 'rubocop-rails', '~> 2.19', '>= 2.19.1', group: [:development]
+    add_gem "rubocop-performance", '~> 1.18', group: [:development]
+    add_gem "rubocop-rspec", '~> 2.22', group: [:development]
     add_gem "annotate", '~> 3.2', group: [:development]
-    add_gem "erb_lint", '~> 0.3.1', group: [:development]
+    add_gem 'erb_lint', '~> 0.4.0', group: [:development]
     add_gem "letter_opener", '~> 1.8', '>= 1.8.1', group: [:development]
     add_gem "bullet", '~> 7.0', '>= 7.0.7', group: [:development]
-    
-    add_gem 'shoulda-matchers', '~> 5.1', group: [:test]
-    add_gem 'database_cleaner', '~> 2.0', group: [:test]
+    add_gem 'dotenv-rails', '~> 2.8', '>= 2.8.1', groups: [:development, :test]
+    add_gem 'shoulda-matchers', '~> 5.3', group: [:development, :test]
+    add_gem 'database_cleaner', '~> 2.0', '>= 2.0.2', group: [:test]
     add_gem 'rails-controller-testing', '~> 1.0', '>= 1.0.5', group: [:test]
     add_gem 'vcr', '~> 6.1', group: [:test]
-    add_gem 'webmock', '~> 3.18', group: [:test]
-    add_gem 'simplecov', '~> 0.21.2', require: false, group: [:test]
+    add_gem 'webmock', '~> 3.18', '>= 3.18.1', group: [:test]
+    add_gem 'simplecov', '~> 0.22.0', require: false, group: [:test]
 end
 
 def set_application_name
@@ -76,24 +71,25 @@ end
 
 def add_users
   if yes?("Would you like to install Devise for user management ?")
-    add_gem 'devise', '~> 4.9'
+    add_gem 'devise', '~> 4.9', '>= 4.9.2'
+    run "bundle install"
     generate "devise:install"
     @model_name = ask("What would you like the user model to be called? [user]")
-    say "Fields first_name, last_name, phone, admin would be created. If unneccessary please remove from migration file."
+    say "Fields first_name, last_name, first_name_kana, last_name_kana,phone, postalcode, prefecture, city, street_address would be created. If unneccessary please remove from migration file."
     @model_name = "user" if @model_name.blank?
     route "root to: 'home#index'"
     environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: 'development'
-    generate :devise, @model_name, "first_name", "last_name", "phone", "admin:boolean"
+    generate :devise, @model_name, "first_name", "last_name", "first_name_kana", "last_name_kana","phone", "postalcode", "prefecture", "city", "street_address"
 
-    # Set admin default to false
-    in_root do
-      migration = Dir.glob("db/migrate/*").max_by{ |f| File.mtime(f) }
-      gsub_file migration, /:admin/, ":admin, default: false"
-    end
+    # # Set admin default to false
+    # in_root do
+    #   migration = Dir.glob("db/migrate/*").max_by{ |f| File.mtime(f) }
+    #   gsub_file migration, /:admin/, ":admin, default: false"
+    # end
 
-    if Gem::Requirement.new("> 5.2").satisfied_by? rails_version
-      gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
-    end
+    # if Gem::Requirement.new("> 5.2").satisfied_by? rails_version
+    #   gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
+    # end
 
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
@@ -101,38 +97,46 @@ def add_users
 
     
     inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
+
+    if yes?("Would you like to add active admin for admin features ? ")
+      add_gem 'activeadmin', '~> 2.13', '>= 2.13.1'
+      run "bundle install"
+      generate "active_admin:install"
+      run "bundle exec rails db:create db:migrate"
+      generate "active_admin:resource", @model_name
+    end
   end
 end
 
 def copy_templates
   remove_file "app/assets/stylesheets/application.css"
-
-
   # directory "app", force: true
-
-  
   copy_file "app/validators/password_validator.rb"
   inject_into_file("app/models/user.rb", "validates :password, password: true\n", after: ":validatable\n")
-
   directory "app", force: true
-  
-  
 
-  route "get '/terms', to: 'home#terms'"
-  route "get '/privacy', to: 'home#privacy'"
-
-  copy_file ".rubocop.yml"
-  
+  copy_file ".rubocop.yml"  
   copy_file ".erb-lint.yml"
+  copy_file ".github/PULL_REQUEST_TEMPLATE/release.md"
+  copy_file ".github/workflows/lint_and_tests.yml"
+  copy_file ".github/ISSUE_TEMPLATE.md"
+  copy_file ".github/PULL_REQUEST_TEMPLATE.md"
+  copy_file "lib/tasks/annotate.rake"
+  copy_file "lib/tasks/lint.rake"
+end
+
+def error_pages
+  generate "controller errors not_found internal_server_error unprocessable_entity"
+  route "match '/404', to: 'errors#not_found', via: :all"
+  route "match '/500', to: 'errors#internal_server_error', via: :all"
+  route "match '/422', to: 'errors#unprocessable_entity', via: :all"
+
+  environment "config.exceptions_app = routes"
 end
 
 def add_delayed_job
   generate "delayed_job:active_record"
   environment "config.active_job.queue_adapter = :delayed_job"  
-end
-
-def add_whenever
-  run "wheneverize ."
 end
 
 def add_friendly_id
@@ -143,9 +147,6 @@ def add_friendly_id
   puts "*"*50
 end
 
-def add_name_of_person
-  inject_into_file("app/models/user.rb", "has_person_name\n", after: "friendly_id :first_name, use: :slugged\n")
-end
 
 def add_simple_form
   say << "Installing simple form to app"
@@ -164,6 +165,7 @@ def add_rollbar
 end
 
 def add_rspec
+  run "bundle exec rails db:migrate"
   generate "rspec:install"
   # generate "rspec:model #{model}"
 
@@ -178,6 +180,7 @@ def add_rspec
   copy_file "spec/support/shoulda_matcher.rb"
   copy_file "spec/support/vcr_setup.rb"
   copy_file "spec/spec_helper.rb", force: true
+
 end
 
 def add_letter_opener
@@ -221,7 +224,7 @@ def add_smtp_setting
     user_name: ENV['SMTP_USER_NAME'] || 'apikey', # This is the string literal 'apikey', NOT the ID of your API key
     password: ENV['SMTP_PASSWORD'],
     # This is the secret sendgrid API key which was issued during API key creation
-    domain: 'yourdomain.com', # Change the domain to your website
+    domain: 'yourdomain.com', #TODO Change the domain to your website
     address: 'smtp.sendgrid.net',
     port: 587,
     authentication: :plain,
@@ -239,14 +242,14 @@ def gem_exists?(name)
 end
 
 unless rails_7_or_newer?
-  puts "Please update Rails to 7.0.4 or newer to create a application through jumpy"
+  puts "Please update Rails to 7.0.5 or newer to create a application through jumpy"
 end
 
 add_template_repository_to_source_path
 add_node_version
 add_gems
-add_simple_form
 after_bundle do
+
   set_application_name
 
   copy_file "app/models/concerns/uid.rb"
@@ -255,8 +258,8 @@ after_bundle do
   add_rspec
   add_friendly_id
   add_delayed_job
-  add_whenever
   add_sitemap
+  add_simple_form
   rails_command "active_storage:install"
   run "bundle lock --add-platform x86_64-linux"
   # gsub_file "config/initializers/devise.rb", /  # config.secret_key = .+/, "  config.secret_key = Rails.application.credentials.secret_key_base"
@@ -269,6 +272,11 @@ after_bundle do
   setup_staging
   add_node_version
   add_smtp_setting
+  run "bundle exec rails db:migrate"
+  generate "controller home index"
+  error_pages
+
+  run "cp config/environments/production.rb config/environments/staging.rb"
 
   unless ENV["SKIP_GIT"]
     git :init
@@ -282,20 +290,16 @@ after_bundle do
 
   run "bundle exec rubocop -a"
   run "bundle exec rubocop -A"
-  
+
   say
-  say "jumpy app successfully created!", :blue
+  say "#{original_app_name} successfully created!", :blue
   say
   say "To get started with your new app:", :green
   say "  cd #{original_app_name}"
-  say
   say "  # Update config/database.yml with your database credentials"
-  say
   say "  rails db:create"
-  say "  rails g noticed:model"
   say "  rails db:migrate"
-  say "  rails g madmin:install # Generate admin dashboards"
-  say "  gem install foreman"
+
   say "  bin/dev"
 end
 

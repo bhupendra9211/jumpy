@@ -1,0 +1,63 @@
+name: Project Lint and Tests
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  linter:
+    name: Lint check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Check lint for ruby files
+        run: bundle exec rubocop
+
+      - name: Check lint in ERB files
+        run: bundle exec erblint --lint-all
+
+  rspec-test:
+    name: RSpec
+    needs: linter
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASSWORD: msql_strong_password
+      DB_NAME: project_test
+    services:
+      mysql:
+        image: mysql:8.0.29
+        env:
+          MYSQL_ROOT_PASSWORD: msql_strong_password
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v3
+      - name: Copy database yml
+        run: mv ./config/database.ci.yml ./config/database.yml
+      - name: Copy .env.sample yml
+        run: cp .env.sample .env
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Setup DB
+        run: bin/rails db:create db:migrate
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+      - name: Compile assets
+        run: bin/rails assets:precompile
+      - name: Run tests
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          COVERAGE: false
+        run: bundle exec rspec
