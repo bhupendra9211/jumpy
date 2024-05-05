@@ -101,7 +101,7 @@ def add_users
     inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
 
     if yes?("Would you like to add active admin for admin features ? ")
-      add_gem 'activeadmin', '~> 2.13', '>= 2.13.1'
+      add_gem 'activeadmin'
       run "bundle install"
       generate "active_admin:install"
       run "bundle exec rails db:create db:migrate"
