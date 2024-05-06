@@ -97,7 +97,8 @@ def add_users
 
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
-    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string, after: :id")
+    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string")
+    #, after: :id
 
     
     inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
@@ -282,6 +283,53 @@ after_bundle do
   run "bundle exec rails db:migrate"
   generate "controller home index"
   error_pages
+
+  def add_arctic_admin
+    # Add Arctic Admin gem to Gemfile
+    add_gem 'arctic_admin', '~> 4.3', '>= 4.3.1'
+  
+    # Bundle install
+    run "bundle install"
+  
+    # Configuration for Arctic Admin
+    inject_into_file "config/initializers/active_admin.rb", before: "# == Register Stylesheets\n" do
+      <<-RUBY
+      meta_tags_options = { viewport: 'width=device-width, initial-scale=1' }
+      config.meta_tags = meta_tags_options
+      config.meta_tags_for_logged_out_pages = meta_tags_options\n\n
+      RUBY
+    end
+  
+    # Installation of Font Awesome
+    run "yarn add @fortawesome/fontawesome-free"
+  
+    # # Use Arctic Admin CSS with Sprockets
+    # inject_into_file "app/assets/stylesheets/active_admin.css", before: " *= require active_admin/base\n" do
+    #   " *= require arctic_admin/base\n"
+    # end
+  
+    # Remove the line that requires active_admin/base in active_admin.css
+    # gsub_file "app/assets/stylesheets/active_admin.css", " *= require active_admin/base\n", ""
+
+
+  # Add SCSS support
+    create_file "app/assets/stylesheets/active_admin.scss", <<-SCSS
+    @import "arctic_admin/base";
+    SCSS
+
+    # Remove the line that imports active_admin/base in active_admin.scss
+    gsub_file "app/assets/stylesheets/active_admin.scss", '@import "active_admin/base";', ''
+
+
+  
+    # Restart the server (optional)
+    # Uncomment the line below if you want to automatically restart the server after setup
+    # run "rails restart"
+  end
+  
+  # Call the method to add Arctic Admin
+  add_arctic_admin
+  
 
   run "cp config/environments/production.rb config/environments/staging.rb"
 
