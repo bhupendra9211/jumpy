@@ -95,7 +95,7 @@ def add_users
 
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
-    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string, after: :id")
+    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string")
 
     
     inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
@@ -221,7 +221,7 @@ def setup_staging
 end
 
 def add_node_version
-  run "curl https://nodejs.org/en/download | grep -oE 'Latest LTS Version<!-- -->: <strong>[0-9]+\.[0-9]+\.[0-9]+</strong>' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' > .node-version"
+  run "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash"
 end
 
 def add_smtp_setting
