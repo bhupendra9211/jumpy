@@ -42,6 +42,8 @@ def add_gems
     add_gem 'simple_form', '~> 5.2'
     add_gem 'sitemap_generator', '~> 6.3'
     add_gem 'rollbar', '~> 3.4'
+    add_gem 'sassc-rails', '~> 2.1', '>= 2.1.2'
+    add_gem 'pry', '~> 0.14.2'
     
     add_gem "rspec-rails", '~> 6.0', '>= 6.0.2', group: [:development, :test]
     add_gem "factory_bot_rails", '~> 6.2', group: [:development, :test]
@@ -95,13 +97,13 @@ def add_users
 
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
-    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string")
+    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string, after: :id")
 
     
     inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
 
     if yes?("Would you like to add active admin for admin features ? ")
-      add_gem 'activeadmin'
+      gem 'activeadmin', '~> 3.2', '>= 3.2.1'
       run "bundle install"
       generate "active_admin:install"
       run "bundle exec rails db:create db:migrate"
@@ -301,7 +303,7 @@ after_bundle do
   say
   say "To get started with your new app:", :green
   say "  cd #{original_app_name}"
-  say "  # Update config/database.yml with your database credentials"
+  say "  #Update config/database.yml with your database credentials"
   say "  rails db:create"
   say "  rails db:migrate"
 
