@@ -43,7 +43,6 @@ def add_gems
     add_gem 'sitemap_generator', '~> 6.3'
     add_gem 'rollbar', '~> 3.4'
     add_gem 'sassc-rails', '~> 2.1', '>= 2.1.2'
-    add_gem 'pry', '~> 0.14.2'
     
     add_gem "rspec-rails", '~> 6.0', '>= 6.0.2', group: [:development, :test]
     add_gem "factory_bot_rails", '~> 6.2', group: [:development, :test]
@@ -65,6 +64,7 @@ def add_gems
     add_gem "letter_opener", '~> 1.8', '>= 1.8.1', group: [:development]
     add_gem "bullet", '~> 7.0', '>= 7.0.7', group: [:development]
     add_gem 'rails_live_reload', '~> 0.3.4', group: [:development]
+    add_gem 'paper_trail', '~> 15.1'
 end
 
 def set_application_name
@@ -256,6 +256,7 @@ end
 add_template_repository_to_source_path
 add_node_version
 add_gems
+
 after_bundle do
 
   set_application_name
@@ -320,15 +321,16 @@ after_bundle do
     # Remove the line that imports active_admin/base in active_admin.scss
     gsub_file "app/assets/stylesheets/active_admin.scss", '@import "active_admin/base";', ''
 
-
-  
-    # Restart the server (optional)
-    # Uncomment the line below if you want to automatically restart the server after setup
-    # run "rails restart"
   end
   
   # Call the method to add Arctic Admin
   add_arctic_admin
+
+  generate 'paper_trail:install'
+  rails_command 'db:migrate'
+  inject_into_file 'app/models/user.rb', after: "class User < ApplicationRecord\n" do
+    "  has_paper_trail\n"
+  end
   
 
   run "cp config/environments/production.rb config/environments/staging.rb"
