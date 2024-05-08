@@ -66,6 +66,48 @@ def add_gems
     add_gem 'rails_live_reload', '~> 0.3.4', group: [:development]
     add_gem 'paper_trail', '~> 15.1'
 end
+def add_yarn_packages
+  run "yarn add yup"
+end
+
+def add_yup_validation
+  # Add the Yup.js setup code in application.js
+  append_to_file 'app/javascript/application.js' do
+    <<~JS
+      import { object, string } from 'yup';
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#new_user');
+
+        if (form) {
+          const userSchema = object({
+            email: string().email('Invalid email').required('Email is required'),
+            password: string().min(8, 'Password must be at least 8 characters').required('Password is required')
+          });
+
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+              const email = formData.get('user[email]');
+              const password = formData.get('user[password]');
+
+              const validatedData = await userSchema.validate({ email, password });
+
+              form.submit();
+            } catch (error) {
+              console.error('Validation Error:', error);
+            }
+          });
+        } else {
+          console.error('Form element not found');
+        }
+      });
+    JS
+  end
+end
 
 def set_application_name
   environment "config.application_name = Rails.application.class.module_parent_name"
@@ -259,6 +301,9 @@ add_node_version
 add_gems
 
 after_bundle do
+
+  add_yarn_packages
+  add_yup_validation
 
   set_application_name
 
