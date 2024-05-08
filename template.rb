@@ -101,7 +101,7 @@ def add_users
     #, after: :id
 
     
-    inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
+    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", after: "devise :database_authenticatable\n")
 
     if yes?("Would you like to add active admin for admin features ? ")
       gem 'activeadmin', '~> 3.2', '>= 3.2.1'
@@ -128,6 +128,7 @@ def copy_templates
   copy_file ".github/PULL_REQUEST_TEMPLATE.md"
   copy_file "lib/tasks/annotate.rake"
   copy_file "lib/tasks/lint.rake"
+  copy_file "lib/templates/active_record/migration/create_table_migration.rb.tt"
 end
 
 def error_pages
@@ -328,9 +329,7 @@ after_bundle do
 
   generate 'paper_trail:install'
   rails_command 'db:migrate'
-  inject_into_file 'app/models/user.rb', after: "class User < ApplicationRecord\n" do
-    "  has_paper_trail\n"
-  end
+
   
 
   run "cp config/environments/production.rb config/environments/staging.rb"
