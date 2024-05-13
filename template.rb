@@ -66,47 +66,57 @@ def add_gems
     add_gem 'rails_live_reload', '~> 0.3.4', group: [:development]
     add_gem 'paper_trail', '~> 15.1'
 end
+
 def add_yarn_packages
   run "yarn add yup"
 end
 
 def add_yup_validation
-  # Add the Yup.js setup code in application.js
-  append_to_file 'app/javascript/application.js' do
-    <<~JS
-      import { object, string } from 'yup';
+  create_file 'app/javascript/validation.js', <<~JS
+  import { object, string } from 'yup';
 
-      document.addEventListener('DOMContentLoaded', () => {
-        const form = document.querySelector('#new_user');
+  document.addEventListener('DOMContentLoaded', () => {
+    // Select all forms on the page
+    const forms = document.querySelectorAll('form');
 
-        if (form) {
-          const userSchema = object({
-            email: string().email('Invalid email').required('Email is required'),
-            password: string().min(8, 'Password must be at least 8 characters').required('Password is required')
-          });
+    forms.forEach(form => {
+      // Check if the form is a sign-up form
+      if (form.id === 'new_user') {
+        // Define the Yup schema for form validation
+        const userSchema = object({
+          email: string().email('Invalid email').required('Email is required'),
+          password: string().min(8, 'Password must be at least 8 characters').required('Password is required')
+        });
 
-          form.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault(); // Prevent default form submission
 
-            const formData = new FormData(form);
+          const formData = new FormData(form);
 
-            try {
-              const email = formData.get('user[email]');
-              const password = formData.get('user[password]');
+          try {
+            // Extract email and password from form data
+            const email = formData.get('user[email]');
+            const password = formData.get('user[password]');
 
-              const validatedData = await userSchema.validate({ email, password });
+            // Validate email and password using Yup schema
+            const validatedData = await userSchema.validate({ email, password });
 
-              form.submit();
-            } catch (error) {
-              console.error('Validation Error:', error);
-            }
-          });
-        } else {
-          console.error('Form element not found');
-        }
-      });
-    JS
-  end
+            // Form data is valid, continue with form submission
+            form.submit();
+          } catch (error) {
+            // Handle validation errors
+            console.error('Validation Error:', error);
+            // Display validation errors to the user
+          }
+        });
+      }
+    });
+  });
+  JS
+end
+
+def add_yup_integration
+  append_to_file 'app/javascript/application.js', "import './validation.js';\n"
 end
 
 def set_application_name
@@ -304,6 +314,7 @@ after_bundle do
 
   add_yarn_packages
   add_yup_validation
+  add_yup_integration
 
   set_application_name
 
