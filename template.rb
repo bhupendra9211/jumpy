@@ -315,6 +315,7 @@ after_bundle do
   add_yarn_packages
   add_yup_validation
   add_yup_integration
+  run "bin/rails javascript:install:webpack"
 
   set_application_name
 
