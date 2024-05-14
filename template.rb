@@ -64,7 +64,7 @@ def add_gems
     add_gem "letter_opener", '~> 1.8', '>= 1.8.1', group: [:development]
     add_gem "bullet", '~> 7.0', '>= 7.0.7', group: [:development]
     add_gem 'rails_live_reload', '~> 0.3.4', group: [:development]
-    # add_gem 'paper_trail', '~> 15.1'
+    add_gem 'paper_trail', '~> 15.1'
 end
 
 def add_yarn_packages
