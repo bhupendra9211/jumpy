@@ -65,6 +65,7 @@ def add_gems
     add_gem "bullet", '~> 7.0', '>= 7.0.7', group: [:development]
     add_gem 'rails_live_reload', '~> 0.3.4', group: [:development]
     add_gem 'paper_trail', '~> 15.1'
+    gem 'i18n-js', '~> 4.2', '>= 4.2.3'
 end
 
 def add_yarn_packages
@@ -316,6 +317,28 @@ after_bundle do
   add_yup_validation
   add_yup_integration
   run "bin/rails javascript:install:webpack"
+
+    # Create i18n config
+    create_file 'config/i18n.yml', <<-YAML
+    translations:
+      - file: "app/javascript/locales.json"
+        patterns:
+          - "errors.*"
+          - "activerecord.errors.*"
+      YAML
+
+      run "bundle exec i18n export"
+
+        # Add necessary JavaScript imports
+  append_to_file 'app/javascript/application.js', <<-JS
+
+  // Import i18n-js and translations
+  import I18n from 'i18n';
+  import translations from './locales.json';
+  
+  I18n.translations = translations;
+    JS
+  
 
   set_application_name
 
