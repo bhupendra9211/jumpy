@@ -42,7 +42,7 @@ def add_gems
     add_gem 'simple_form', '~> 5.2'
     add_gem 'sitemap_generator', '~> 6.3'
     add_gem 'rollbar', '~> 3.4'
-    add_gem 'sassc-rails', '~> 2.1', '>= 2.1.2'
+    # add_gem 'sassc-rails', '~> 2.1', '>= 2.1.2'
     
     add_gem "rspec-rails", '~> 6.0', '>= 6.0.2', group: [:development, :test]
     add_gem "factory_bot_rails", '~> 6.2', group: [:development, :test]
