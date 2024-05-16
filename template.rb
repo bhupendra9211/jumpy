@@ -69,6 +69,7 @@ def add_gems
     add_gem 'bullet', '~> 7.1', '>= 7.1.6', group: [:development]
     add_gem 'rails_live_reload', '~> 0.3.5', group: [:development]
     add_gem 'paper_trail', '~> 15.1'
+    gem 'i18n-js', '~> 4.2', '>= 4.2.3'
 end
 
 def add_yarn_packages
@@ -315,9 +316,40 @@ unless rails_7_or_newer?
   puts "Please update Rails to 7.0.5 or newer to create a application through jumpy"
 end
 
+
 add_template_repository_to_source_path
 add_node_version
 add_gems
+
+def add_i18n_js_config
+  create_file 'config/i18n.yml', <<-YAML
+  translations:
+    - file: "app/javascript/locales.json"
+      patterns:
+        - "errors.*"
+        - "activerecord.errors.*"
+        - "*.hello.*"
+  YAML
+end
+
+def setup_i18n_js
+    create_file 'app/javascript/locales.json', <<-JSON
+      {
+   
+      }
+    JSON
+
+  append_to_file 'app/javascript/application.js', <<-JS
+      import I18n from 'i18n-js';
+      import translations from './locales.json';
+
+      I18n.translations = translations;
+    JS
+end
+
+def export_i18n_translations
+  run "bundle exec i18n export"
+end
 
 after_bundle do
 
@@ -331,6 +363,9 @@ after_bundle do
   copy_file "app/models/concerns/uid.rb"
 
   add_users
+  add_i18n_js_config
+  setup_i18n_js
+  export_i18n_translations
   add_rspec
   add_friendly_id
   add_delayed_job
