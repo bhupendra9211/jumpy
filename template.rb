@@ -155,6 +155,7 @@ def add_users
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
     gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string")
     #, after: :id
+    #kfdlfld
 
 
     
