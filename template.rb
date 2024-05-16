@@ -388,35 +388,76 @@ after_bundle do
   error_pages
 
   def add_arctic_admin
-    # Add Arctic Admin gem to Gemfile
+  #   # Add Arctic Admin gem to Gemfile
     add_gem 'arctic_admin', '~> 4.3', '>= 4.3.1'
   
-    # Bundle install
+  #   # Bundle install
     run "bundle install"
   
-    # Configuration for Arctic Admin
+  #   # Configuration for Arctic Admin
     inject_into_file "config/initializers/active_admin.rb", before: "# == Register Stylesheets\n" do
       <<-RUBY
-      Rails.application.config.after_initialize do
-        config.meta_tags_options = { viewport: 'width=device-width, initial-scale=1' }
-        config.meta_tags = config.meta_tags_options
-        config.meta_tags_for_logged_out_pages = config.meta_tags_options
-      end\n\n
+      meta_tags_options = { viewport: 'width=device-width, initial-scale=1' }
+      config.meta_tags = meta_tags_options
+      config.meta_tags_for_logged_out_pages = meta_tags_options\n\n
       RUBY
     end
   
-    # Installation of Font Awesome
+  #   # Installation of Font Awesome
     run "yarn add @fortawesome/fontawesome-free"
   
-    # Add SCSS support
+  #   # # Use Arctic Admin CSS with Sprockets
+  #   # inject_into_file "app/assets/stylesheets/active_admin.css", before: " *= require active_admin/base\n" do
+  #   #   " *= require arctic_admin/base\n"
+  #   # end
+  
+  #   # Remove the line that requires active_admin/base in active_admin.css
+  #   # gsub_file "app/assets/stylesheets/active_admin.css", " *= require active_admin/base\n", ""
+
+
+  # # Add SCSS support
     create_file "app/assets/stylesheets/active_admin.scss", <<-SCSS
     @import "arctic_admin/base";
     SCSS
-  
-    # Remove the line that imports active_admin/base in active_admin.scss
-    gsub_file "app/assets/stylesheets/active_admin.scss", '@import "active_admin/base";', ''
+
+  #   # Remove the line that imports active_admin/base in active_admin.scss
+  gsub_file "app/assets/stylesheets/active_admin.scss", '@import "active_admin/base";', ''
   end
   
+  # # Call the method to add Arctic Admin
+  add_arctic_admin
+
+  generate 'paper_trail:install'
+  rails_command 'db:migrate'
+
+  
+
+  run "cp config/environments/production.rb config/environments/staging.rb"
+
+  unless ENV["SKIP_GIT"]
+    git :init
+    git add: "."
+    begin
+      git commit: %( -m 'Initial commit')
+    rescue StandardError => e
+      puts e.message
+    end
+  end
+
+  run "bundle exec rubocop -a"
+  run "bundle exec rubocop -A"
+
+  say
+  say "#{original_app_name} successfully created!", :blue
+  say
+  say "To get started with your new app:", :green
+  say "  cd #{original_app_name}"
+  say "  #Update config/database.yml with your database credentials"
+  say "  rails db:create"
+  say "  rails db:migrate"
+
+  say "bin/dev"
+end
 
 
 # add node version
