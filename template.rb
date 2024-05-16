@@ -74,6 +74,28 @@ end
 
 def add_yarn_packages
   run "yarn add yup"
+  run "yarn add @stylistic/eslint-plugin-js eslint eslint-config-google eslint-config-prettier eslint-plugin-yml prettier --dev"
+end
+
+def update_package_json
+  package_json_path = "package.json"
+  
+  # Read package.json
+  package_json = JSON.parse(File.read(package_json_path))
+
+  # Add new dev dependencies
+  package_json["devDependencies"] ||= {}
+  package_json["devDependencies"].merge!({
+    "@stylistic/eslint-plugin-js": "^1.8.0",
+    "eslint": "^8.56.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-yml": "^1.14.0",
+    "prettier": "^3.2.5"
+  })
+
+  # Write the updated package.json back to file
+  File.write(package_json_path, JSON.pretty_generate(package_json))
 end
 
 def add_yup_validation
@@ -354,6 +376,9 @@ end
 after_bundle do
 
   add_yarn_packages
+  update_package_json
+  run "yarn install"
+  
   add_yup_validation
   add_yup_integration
   run "bin/rails javascript:install:webpack"
