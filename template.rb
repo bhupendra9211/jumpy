@@ -41,8 +41,6 @@ def add_gems
     add_gem 'friendly_id', '~> 5.5', '>= 5.5.1'
     add_gem 'simple_form', '~> 5.3'
     add_gem 'sitemap_generator', '~> 6.3'
-
-
     add_gem 'sassc-rails', '~> 2.1', '>= 2.1.2'
     add_gem 'rollbar', '~> 3.5', '>= 3.5.1'
 
@@ -50,12 +48,10 @@ def add_gems
     add_gem 'factory_bot_rails', '~> 6.4', '>= 6.4.3', group: [:development, :test]
     add_gem 'ffaker', '~> 2.23', group: [:development, :test]
     add_gem 'shoulda-matchers', '~> 6.1', group: [:development, :test]
-
     add_gem 'simplecov', '~> 0.22.0', require: false, group: [:development, :test]
     add_gem 'database_cleaner', '~> 2.0', '>= 2.0.2', group: [:development, :test]
     add_gem 'dotenv-rails', '~> 3.0', '>= 3.0.2', groups: [:development, :test]
     add_gem 'rails-controller-testing', '~> 1.0', '>= 1.0.5', group: [:development, :test]
-
     add_gem 'vcr', '~> 6.2', group: [:development, :test]
     add_gem 'webmock', '~> 3.20', group: [:development, :test]
 
