@@ -10,9 +10,9 @@ require 'pry'
 # invoked remotely via HTTP, that means the files are not present locally.
 # In that case, use `git clone` to download them to a local temporary dir.
 def add_template_repository_to_source_path
-  if __FILE__.match?(%r{\Ahttps?://})
-    require 'tmpdir'
-    source_paths.unshift(tempdir = Dir.mktmpdir('jumpy-'))
+  if __FILE__ =~ %r{\Ahttps?://}
+    require "tmpdir"
+    source_paths.unshift(tempdir = Dir.mktmpdir("jumpy-"))
     at_exit { FileUtils.remove_entry(tempdir) }
     git clone: [
       '--quiet',
