@@ -484,7 +484,7 @@ after_bundle do
   </section>
   CODE
 
-  create_file "app/views/pages/terms.html.erb", <<-CODE
+  create_file "app/views/static_pages/terms.html.erb", <<-CODE
   <section class="bg-white dark:bg-white-500 min-h-screen">
     <div class="py-8 lg:py-16 px-4 mx-auto max-w-screen-md">
       <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-center text-gray-900 dark:text-black">Contact Us</h2>
@@ -510,7 +510,7 @@ after_bundle do
   </section>
   CODE
 
-  create_file "app/views/pages/privacy_policy.html.erb", <<-CODE
+  create_file "app/views/static_pages/privacy_policy.html.erb", <<-CODE
   <section class="bg-white dark:bg-white-500 min-h-screen">
     <div class="py-8 lg:py-16 px-4 mx-auto max-w-screen-md">
       <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-center text-gray-900 dark:text-black">Contact Us</h2>
