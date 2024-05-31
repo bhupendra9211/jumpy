@@ -474,12 +474,12 @@ after_bundle do
           <div class="space-y-8">
             <div>
               <%= form.label :email, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-black-300" %>
-              <%= form.text_field :email, class: "shadow-sm bg-gray-50 border border-gray-300 text-black-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-white-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light", placeholder: "name@example.com", required: true %>
+              <%= form.text_field :email, class: "shadow-sm bg-gray-50 border border-gray-300 text-black-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-white-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light", placeholder: "name@example.com", required: true %>
             </div>
 
             <div class="sm:col-span-2">
               <%= form.label :content, class: "block mb-2 text-sm font-medium text-black-900 dark:text-black-400" %>
-              <%= form.text_area :content, rows: "6", class: "block p-2.5 w-full text-sm text-gray-900 bg-white-50 rounded-lg shadow-sm border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-white-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500", placeholder: "Leave a comment..." %>
+              <%= form.text_area :content, rows: "6", class: "block p-2.5 w-full text-sm text-gray-900 bg-white-50 rounded-lg shadow-sm border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-white-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-primary-500 dark:focus:border-primary-500", placeholder: "Leave a comment..." %>
             </div>
 
             <div class="flex justify-center">
