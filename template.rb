@@ -563,6 +563,13 @@ after_bundle do
     end
   CODE
 
+  inject_into_file 'app/models/contact.rb', after: %r{class Contact < ApplicationRecord\n} do
+    <<-RUBY
+      def self.ransackable_attributes(auth_object = nil)
+        ["content", "created_at", "email", "id", "id_value", "uid", "updated_at"]
+      end
+    RUBY
+
   rails_command 'db:migrate'
 
   
