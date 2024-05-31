@@ -426,6 +426,145 @@ after_bundle do
   generate 'paper_trail:install'
   rails_command 'db:migrate'
 
+  generate "model Contact email:string content:text"
+
+  create_file "app/controllers/contacts_controller.rb", <<-CODE
+    class ContactsController < ApplicationController
+      def new
+        @contact = Contact.new
+      end
+
+      def create
+        @contact = Contact.new(contact_params)
+        if @contact.save
+          redirect_to new_contact_path, notice: "Message sent successfully"
+        else
+          render :new
+        end
+      end
+
+      private
+
+      def contact_params
+        params.require(:contact).permit(:email, :content)
+      end
+    end
+  CODE
+  create_file "app/controllers/static_pages_controller.rb", <<-CODE
+    class StaticPagesController < ApplicationController
+      def privacy_policy
+      end
+      def terms
+      end
+    end
+  CODE
+
+  route <<-CODE
+    resources :contacts, only: [:new, :create]
+    get 'terms', to: 'static_pages#terms'
+    get 'privacy_policy', to: 'static_pages#privacy_policy'
+  CODE
+
+  create_file "app/views/contacts/new.html.erb", <<-CODE
+  <section class="bg-white dark:bg-white-500 min-h-screen">
+    <div class="py-8 lg:py-16 px-4 mx-auto max-w-screen-md">
+        <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-center text-gray-900 dark:text-black">Contact Us</h2>
+
+        <%= form_with(model: @contact, local: true) do |form| %>
+          <div class="space-y-8">
+            <div>
+              <%= form.label :email, class: "block mb-2 text-sm font-medium text-gray-900 dark:text-black-300" %>
+              <%= form.text_field :email, class: "shadow-sm bg-gray-50 border border-gray-300 text-black-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-white-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light", placeholder: "name@example.com", required: true %>
+            </div>
+
+            <div class="sm:col-span-2">
+              <%= form.label :content, class: "block mb-2 text-sm font-medium text-black-900 dark:text-black-400" %>
+              <%= form.text_area :content, rows: "6", class: "block p-2.5 w-full text-sm text-gray-900 bg-white-50 rounded-lg shadow-sm border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-white-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500", placeholder: "Leave a comment..." %>
+            </div>
+
+            <div class="flex justify-center">
+              <%= form.submit "Send message", class: "py-3 px-5 text-sm font-medium text-center text-white rounded-lg bg-blue-700 sm:w-fit hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+  </section>
+
+  CODE
+
+  create_file "app/views/static_pages/terms.html.erb", <<-CODE
+    <div class="min-h-screen flex items-center justify-center bg-white px-20 container mx-auto ">
+      <div class="container mx-auto px-20 py-5 bg-gray-50 rounded shadow-lg">
+        <h1 class="text-3xl font-bold mb-4 text-center">Terms and Condition</h1>
+
+        <p class="mb-4">
+          This privacy policy sets out how our website uses and protects any information that you give us when you use
+          There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+
+        <p class="mb-4">
+          We are committed to ensuring that your information is secure. In order to prevent unauthorized access or
+          disclosure,
+          we have put in place suitable physical, electronic, and managerial procedures to safeguard and secure the
+          information we collect online.
+        </p>
+
+        <p class="mb-4">
+          A cookie is a small file that asks permission to be placed on your computer's hard drive. Once you agree,There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+
+        <p class="mb-4">
+          Overall, cookies help us provide you with a better website by enabling us to monitor which pages you find There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+        <p class="mb-4">
+          This privacy policy is subject to change without notice.There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+      </div>
+  </div>
+
+
+  CODE
+
+  create_file "app/views/static_pages/privacy_policy.html.erb", <<-CODE
+  <div class="min-h-screen flex items-center justify-center bg-white px-20 container mx-auto ">
+      <div class="container mx-auto px-20 py-5 bg-gray-50 rounded shadow-lg">
+        <h1 class="text-3xl font-bold mb-4 text-center">Privacy and Policy</h1>
+
+        <p class="mb-4">
+          This privacy policy sets out how our website uses and protects any information that you give us when you use
+          There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+
+        <p class="mb-4">
+          We are committed to ensuring that your information is secure. In order to prevent unauthorized access or
+          disclosure,
+          we have put in place suitable physical, electronic, and managerial procedures to safeguard and secure the
+          information we collect online.
+        </p>
+
+        <p class="mb-4">
+          A cookie is a small file that asks permission to be placed on your computer's hard drive. Once you agree,There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+
+        <p class="mb-4">
+          Overall, cookies help us provide you with a better website by enabling us to monitor which pages you find There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+        <p class="mb-4">
+          This privacy policy is subject to change without notice.There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+        </p>
+      </div>
+  </div>
+
+  CODE
+
+  create_file "app/admin/contacts.rb", <<-CODE
+    ActiveAdmin.register Contact do
+      permit_params :email, :content
+    end
+  CODE
+
+  rails_command 'db:migrate'
+
   
 
   run "cp config/environments/production.rb config/environments/staging.rb"
