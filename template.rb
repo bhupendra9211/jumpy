@@ -777,7 +777,7 @@ after_bundle do
     </footer>
   CODE
 
-  gsub_file "app/views/home/index.html.erb", '<h1>Home#index</h1>\n<p>Find me in app/views/home/index.html.erb</p>', ''
+  gsub_file "app/views/home/index.html.erb", /<h1>Home#index<\/h1>\n<p>Find me in app\/views\/home\/index.html.erb<\/p>\n/, ''
 
   inject_into_file 'app/views/home/index.html.erb', <<-CODE
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 py-4">
