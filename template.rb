@@ -65,7 +65,8 @@ def add_gems
     add_gem 'bullet', '~> 7.1', '>= 7.1.6', group: [:development]
     add_gem 'rails_live_reload', '~> 0.3.5', group: [:development]
     add_gem 'paper_trail', '~> 15.1'
-    gem 'i18n-js', '~> 4.2', '>= 4.2.3'
+    add_gem 'i18n-js', '~> 4.2', '>= 4.2.3'
+    add_gem 'rack-timeout', '~> 0.7.0', group: %i[production staging]
 end
 
 def add_yarn_packages
@@ -823,7 +824,43 @@ after_bundle do
       <%= render "shared/footer" %>
     CODE
   end
+
+
+  initializer 'rack_timeout.rb', <<-CODE
+    if Rails.env.production? || Rails.env.staging?
+        Rails.application.config.middleware.insert_before Rack::Runtime, Rack::Timeout, service_timeout: 20
+        Rack::Timeout::Logger.disable
+    end
   
+  CODE
+  
+  inject_into_file 'config/application.rb', before: /^  end/ do
+    <<-RUBY
+        if Rails.env.production? || Rails.env.staging?
+          config.middleware.insert_before Rack::Runtime, Rack::Timeout
+          config.action_dispatch.rescue_responses.merge!(
+            'Rack::Timeout::RequestTimeoutException' => :service_unavailable,
+            'Rack::Timeout::RequestTimeoutError' => :service_unavailable,
+            'Rack::Timeout::RequestExpiryError' => :service_unavailable
+          )
+        end
+
+    RUBY
+  end
+
+
+  inject_into_file 'app/controllers/errors_controller.rb',
+    after: "class ErrorsController < ApplicationController\n" do
+    <<-RUBY
+      def service_unavailable; end
+    RUBY
+  end
+
+  create_file 'app/views/errors/service_unavailable.html.erb', <<-CODE
+    <h1>Service Unavailable</h1>
+    <p>app/views/errors/service_unavailable.html.erb</p>
+  CODE
+
 
   run "cp config/environments/production.rb config/environments/staging.rb"
 
