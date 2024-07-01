@@ -58,7 +58,7 @@ def add_gems
     add_gem 'rubocop-performance', '~> 1.20', '>= 1.20.2', group: [:development]
     add_gem 'rubocop-rspec', '~> 2.26', '>= 2.26.1', group: [:development]
     add_gem 'rubocop-factory_bot', '~>2.25', '>=2.25.1', group: [:development]
-    add_gem "annotate", '~> 3.2', group: [:development]
+    add_gem 'annotate', '~> 3.2', group: [:development]
     add_gem 'erb_lint', '~> 0.5.0', group: [:development]
     add_gem 'letter_opener', '~> 1.9', group: [:development]
     add_gem 'bullet', '~> 7.1', '>= 7.1.6', group: [:development]
