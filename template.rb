@@ -190,7 +190,6 @@ def copy_templates
   copy_file ".github/PULL_REQUEST_TEMPLATE.md"
   copy_file "lib/tasks/annotate.rake"
   copy_file "lib/tasks/lint.rake"
-  copy_file "lib/templates/active_record/migration/create_table_migration.rb.tt"
 end
 
 def error_pages
@@ -332,7 +331,6 @@ after_bundle do
   add_yarn_packages
   add_yup_validation
   add_yup_integration
-  run "bin/rails javascript:install:webpack"
 
   set_application_name
 
