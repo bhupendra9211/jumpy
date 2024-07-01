@@ -43,7 +43,6 @@ def add_gems
     add_gem 'simple_form', '~> 5.3'
     add_gem 'sitemap_generator', '~> 6.3'
     add_gem 'rollbar', '~> 3.5', '>= 3.5.1'
-
     add_gem 'rspec-rails', '~> 6.1', '>= 6.1.1', group: [:development, :test]
     add_gem 'factory_bot_rails', '~> 6.4', '>= 6.4.3', group: [:development, :test]
     add_gem 'ffaker', '~> 2.23', group: [:development, :test]
@@ -54,17 +53,70 @@ def add_gems
     add_gem 'rails-controller-testing', '~> 1.0', '>= 1.0.5', group: [:development, :test]
     add_gem 'vcr', '~> 6.2', group: [:development, :test]
     add_gem 'webmock', '~> 3.20', group: [:development, :test]
-
     add_gem 'rubycritic', '~> 4.9', group: [:development]
     add_gem 'rubocop-rails', '~> 2.23', '>= 2.23.1', group: [:development]
     add_gem 'rubocop-performance', '~> 1.20', '>= 1.20.2', group: [:development]
     add_gem 'rubocop-rspec', '~> 2.26', '>= 2.26.1', group: [:development]
-    add_gem 'rubocop-factory_bot', '~> 2.25', '>= 2.25.1', group: [:development]
-    add_gem 'annotate', '~> 3.2', group: [:development]
+    add_gem 'rubocop-factory_bot', '~>2.25', '>=2.25.1', group: [:development]
+    add_gem "annotate", '~> 3.2', group: [:development]
     add_gem 'erb_lint', '~> 0.5.0', group: [:development]
     add_gem 'letter_opener', '~> 1.9', group: [:development]
     add_gem 'bullet', '~> 7.1', '>= 7.1.6', group: [:development]
     add_gem 'rails_live_reload', '~> 0.3.5', group: [:development]
+    add_gem 'paper_trail', '~> 15.1'
+end
+
+def add_yarn_packages
+  run "yarn add yup"
+end
+
+def add_yup_validation
+
+  create_file 'app/javascript/validation.js', <<~JS
+  import { object, string } from 'yup';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Select all forms on the page
+    const forms = document.querySelectorAll('form');
+
+    forms.forEach(form => {
+      // Check if the form is a sign-up form
+      if (form.id === 'new_user') {
+        // Define the Yup schema for form validation
+        const userSchema = object({
+          email: string().email('Invalid email').required('Email is required'),
+          password: string().min(8, 'Password must be at least 8 characters').required('Password is required')
+        });
+
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault(); // Prevent default form submission
+
+          const formData = new FormData(form);
+
+          try {
+            // Extract email and password from form data
+            const email = formData.get('user[email]');
+            const password = formData.get('user[password]');
+
+            // Validate email and password using Yup schema
+            const validatedData = await userSchema.validate({ email, password });
+
+            // Form data is valid, continue with form submission
+            form.submit();
+          } catch (error) {
+            // Handle validation errors
+            console.error('Validation Error:', error);
+            // Display validation errors to the user
+          }
+        });
+      }
+    });
+  });
+  JS
+end
+
+def add_yup_integration
+  append_to_file 'app/javascript/application.js', "import './validation.js';\n"
 end
 
 def set_application_name
@@ -97,13 +149,15 @@ def add_users
 
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
-    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string, after: :id")
+    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string,after: :id")
 
 
-    inject_into_file("app/models/#{@model_name.downcase}.rb", "include Uid\n", before: "devise :database_authenticatable")
+    
+    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", before: "devise :database_authenticatable\n")
 
     if yes?("Would you like to add active admin for admin features ? ")
-      add_gem 'activeadmin', '~> 3.2'
+      gem 'activeadmin', '~> 3.2', '>= 3.2.1'
+
       run "bundle install"
       generate "active_admin:install"
       run "bundle exec rails db:create"
@@ -120,7 +174,6 @@ def copy_templates
   copy_file "app/validators/password_validator.rb"
   inject_into_file("app/models/#{@model_name.downcase}.rb", "validates :password, password: true, if: proc { password.present? && User.password_length.include?(password.length) }\n", after: ":validatable\n")
   directory "app", force: true
-
   copy_file ".rubocop.yml"
   copy_file ".erb-lint.yml"
   copy_file ".github/PULL_REQUEST_TEMPLATE/release.md"
@@ -136,7 +189,6 @@ def error_pages
   route "match '/404', to: 'errors#not_found', via: :all"
   route "match '/500', to: 'errors#internal_server_error', via: :all"
   route "match '/422', to: 'errors#unprocessable_entity', via: :all"
-
   environment "config.exceptions_app = routes"
 end
 
@@ -264,7 +316,12 @@ end
 add_template_repository_to_source_path
 add_node_version
 add_gems
+
 after_bundle do
+
+  add_yarn_packages
+  add_yup_validation
+  add_yup_integration
 
   set_application_name
 
@@ -292,6 +349,51 @@ after_bundle do
   generate "controller home index"
   error_pages
 
+  def add_arctic_admin
+  #   # Add Arctic Admin gem to Gemfile
+    add_gem 'arctic_admin', '~> 4.3', '>= 4.3.1'
+  
+  #   # Bundle install
+    run "bundle install"
+  
+  #   # Configuration for Arctic Admin
+    inject_into_file "config/initializers/active_admin.rb", before: "# == Register Stylesheets\n" do
+      <<-RUBY
+      meta_tags_options = { viewport: 'width=device-width, initial-scale=1' }
+      config.meta_tags = meta_tags_options
+      config.meta_tags_for_logged_out_pages = meta_tags_options\n\n
+      RUBY
+    end
+  
+  #   # Installation of Font Awesome
+    run "yarn add @fortawesome/fontawesome-free"
+  
+  #   # # Use Arctic Admin CSS with Sprockets
+  #   # inject_into_file "app/assets/stylesheets/active_admin.css", before: " *= require active_admin/base\n" do
+  #   #   " *= require arctic_admin/base\n"
+  #   # end
+  
+  #   # Remove the line that requires active_admin/base in active_admin.css
+  #   # gsub_file "app/assets/stylesheets/active_admin.css", " *= require active_admin/base\n", ""
+
+
+  # # Add SCSS support
+    create_file "app/assets/stylesheets/active_admin.scss", <<-SCSS
+    @import "arctic_admin/base";
+    SCSS
+
+  #   # Remove the line that imports active_admin/base in active_admin.scss
+  gsub_file "app/assets/stylesheets/active_admin.scss", '@import "active_admin/base";', ''
+  end
+  
+  # # Call the method to add Arctic Admin
+  add_arctic_admin
+
+  generate 'paper_trail:install'
+  rails_command 'db:migrate'
+
+  
+
   run "cp config/environments/production.rb config/environments/staging.rb"
 
   unless ENV["SKIP_GIT"]
@@ -312,7 +414,7 @@ after_bundle do
   say
   say "To get started with your new app:", :green
   say "  cd #{original_app_name}"
-  say "  # Update config/database.yml with your database credentials"
+  say "  #Update config/database.yml with your database credentials"
   say "  rails db:create"
   say "  rails db:migrate"
 
