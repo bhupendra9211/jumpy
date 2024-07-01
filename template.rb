@@ -42,27 +42,22 @@ def add_gems
     add_gem 'friendly_id', '~> 5.5', '>= 5.5.1'
     add_gem 'simple_form', '~> 5.3'
     add_gem 'sitemap_generator', '~> 6.3'
-
     add_gem 'rollbar', '~> 3.5', '>= 3.5.1'
-
     add_gem 'rspec-rails', '~> 6.1', '>= 6.1.1', group: [:development, :test]
     add_gem 'factory_bot_rails', '~> 6.4', '>= 6.4.3', group: [:development, :test]
     add_gem 'ffaker', '~> 2.23', group: [:development, :test]
     add_gem 'shoulda-matchers', '~> 6.1', group: [:development, :test]
-
     add_gem 'simplecov', '~> 0.22.0', require: false, group: [:development, :test]
     add_gem 'database_cleaner', '~> 2.0', '>= 2.0.2', group: [:development, :test]
     add_gem 'dotenv-rails', '~> 3.0', '>= 3.0.2', groups: [:development, :test]
     add_gem 'rails-controller-testing', '~> 1.0', '>= 1.0.5', group: [:development, :test]
-
     add_gem 'vcr', '~> 6.2', group: [:development, :test]
     add_gem 'webmock', '~> 3.20', group: [:development, :test]
-
     add_gem 'rubycritic', '~> 4.9', group: [:development]
     add_gem 'rubocop-rails', '~> 2.23', '>= 2.23.1', group: [:development]
     add_gem 'rubocop-performance', '~> 1.20', '>= 1.20.2', group: [:development]
     add_gem 'rubocop-rspec', '~> 2.26', '>= 2.26.1', group: [:development]
-    add_gem 'robocop-factory_bot', '~>2.25', '>=2.25.1', group: [:development]
+    add_gem 'rubocop-factory_bot', '~>2.25', '>=2.25.1', group: [:development]
     add_gem "annotate", '~> 3.2', group: [:development]
     add_gem 'erb_lint', '~> 0.5.0', group: [:development]
     add_gem 'letter_opener', '~> 1.9', group: [:development]
@@ -179,7 +174,6 @@ def copy_templates
   copy_file "app/validators/password_validator.rb"
   inject_into_file("app/models/#{@model_name.downcase}.rb", "validates :password, password: true, if: proc { password.present? && User.password_length.include?(password.length) }\n", after: ":validatable\n")
   directory "app", force: true
-
   copy_file ".rubocop.yml"
   copy_file ".erb-lint.yml"
   copy_file ".github/PULL_REQUEST_TEMPLATE/release.md"
@@ -195,7 +189,6 @@ def error_pages
   route "match '/404', to: 'errors#not_found', via: :all"
   route "match '/500', to: 'errors#internal_server_error', via: :all"
   route "match '/422', to: 'errors#unprocessable_entity', via: :all"
-
   environment "config.exceptions_app = routes"
 end
 
