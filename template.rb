@@ -1,6 +1,7 @@
 require "fileutils"
 require "shellwords"
 require "pry"
+require "open3"
 
 @model_name = ""
 
@@ -105,9 +106,11 @@ def add_users
       add_gem 'activeadmin', '~> 3.2'
       run "bundle install"
       generate "active_admin:install"
-      run "bundle exec rails db:create db:migrate"
+      run "bundle exec rails db:create"
+      run "bundle exec rails db:migrate"
       generate "active_admin:resource", @model_name
     end
+    run "bundle exec rails db:create db:migrate"
   end
 end
 
@@ -115,7 +118,7 @@ def copy_templates
   remove_file "app/assets/stylesheets/application.css"
   # directory "app", force: true
   copy_file "app/validators/password_validator.rb"
-  inject_into_file("app/models/user.rb", "validates :password, password: true, if: proc { password.present? && User.password_length.include?(password.length) }\n", after: ":validatable\n")
+  inject_into_file("app/models/#{@model_name.downcase}.rb", "validates :password, password: true, if: proc { password.present? && User.password_length.include?(password.length) }\n", after: ":validatable\n")
   directory "app", force: true
 
   copy_file ".rubocop.yml"
@@ -224,7 +227,12 @@ def setup_staging
 end
 
 def add_node_version
-  run "curl https://nodejs.org/en/download | grep -oE 'Latest LTS Version<!-- -->: <strong>[0-9]+\.[0-9]+\.[0-9]+</strong>' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' > .node-version"
+  command = "curl -L https://github.com/nodejs/node/releases\?q\=lts\&expanded\=true"
+  Open3.popen3(command) do |stdin, stdout, stderr, wait_thr|
+    version = stdout.read.scan(/Version [0-9]+\.[0-9]+\.[0-9]+/).first
+    version_number = version.match(/[0-9]+\.[0-9]+\.[0-9]+/)[0] if version
+    File.write('.node-version', version_number) if version_number
+  end
 end
 
 def add_smtp_setting
