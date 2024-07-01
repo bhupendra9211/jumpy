@@ -72,14 +72,11 @@ def add_yarn_packages
 end
 
 def add_yup_validation
-
   create_file 'app/javascript/validation.js', <<~JS
   import { object, string } from 'yup';
-
   document.addEventListener('DOMContentLoaded', () => {
     // Select all forms on the page
     const forms = document.querySelectorAll('form');
-
     forms.forEach(form => {
       // Check if the form is a sign-up form
       if (form.id === 'new_user') {
@@ -88,10 +85,8 @@ def add_yup_validation
           email: string().email('Invalid email').required('Email is required'),
           password: string().min(8, 'Password must be at least 8 characters').required('Password is required')
         });
-
         form.addEventListener('submit', async (event) => {
           event.preventDefault(); // Prevent default form submission
-
           const formData = new FormData(form);
 
           try {
@@ -150,13 +145,9 @@ def add_users
 
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
-
-
-    
-    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", before: "devise :database_authenticatable\n")
-
     gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string,after: :id")
 
+    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", before: "devise :database_authenticatable\n")
 
     if yes?("Would you like to add active admin for admin features ? ")
       gem 'activeadmin', '~> 3.2', '>= 3.2.1'
