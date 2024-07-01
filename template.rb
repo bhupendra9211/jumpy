@@ -43,8 +43,6 @@ def add_gems
     add_gem 'simple_form', '~> 5.3'
     add_gem 'sitemap_generator', '~> 6.3'
 
-
-    add_gem 'sassc-rails', '~> 2.1', '>= 2.1.2'
     add_gem 'rollbar', '~> 3.5', '>= 3.5.1'
 
     add_gem 'rspec-rails', '~> 6.1', '>= 6.1.1', group: [:development, :test]
