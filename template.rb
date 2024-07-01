@@ -65,7 +65,6 @@ def add_gems
     add_gem 'rails_live_reload', '~> 0.3.5', group: [:development]
     add_gem 'paper_trail', '~> 15.1'
     add_gem 'i18n-js', '~> 4.2', '>= 4.2.3'
-
 end
 
 def add_yarn_packages
