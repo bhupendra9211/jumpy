@@ -42,27 +42,21 @@ def add_gems
     add_gem 'friendly_id', '~> 5.5', '>= 5.5.1'
     add_gem 'simple_form', '~> 5.3'
     add_gem 'sitemap_generator', '~> 6.3'
-
-
-    add_gem 'sassc-rails', '~> 2.1', '>= 2.1.2'
     add_gem 'rollbar', '~> 3.5', '>= 3.5.1'
     add_gem 'rspec-rails', '~> 6.1', '>= 6.1.1', group: [:development, :test]
     add_gem 'factory_bot_rails', '~> 6.4', '>= 6.4.3', group: [:development, :test]
     add_gem 'ffaker', '~> 2.23', group: [:development, :test]
     add_gem 'shoulda-matchers', '~> 6.1', group: [:development, :test]
-
     add_gem 'simplecov', '~> 0.22.0', require: false, group: [:development, :test]
     add_gem 'database_cleaner', '~> 2.0', '>= 2.0.2', group: [:development, :test]
     add_gem 'dotenv-rails', '~> 3.0', '>= 3.0.2', groups: [:development, :test]
     add_gem 'rails-controller-testing', '~> 1.0', '>= 1.0.5', group: [:development, :test]
-
     add_gem 'vcr', '~> 6.2', group: [:development, :test]
     add_gem 'webmock', '~> 3.20', group: [:development, :test]
     add_gem 'rubycritic', '~> 4.9', group: [:development]
     add_gem 'rubocop-rails', '~> 2.23', '>= 2.23.1', group: [:development]
     add_gem 'rubocop-performance', '~> 1.20', '>= 1.20.2', group: [:development]
     add_gem 'rubocop-rspec', '~> 2.26', '>= 2.26.1', group: [:development]
-
     add_gem 'rubocop-factory_bot', '~>2.25', '>=2.25.1', group: [:development]
     add_gem "annotate", '~> 3.2', group: [:development]
     add_gem 'erb_lint', '~> 0.5.0', group: [:development]
@@ -160,14 +154,13 @@ def add_users
 
 
     
-    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", after: "devise :database_authenticatable\n")
+    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", before: "devise :database_authenticatable\n")
 
     gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string,after: :id")
 
 
     if yes?("Would you like to add active admin for admin features ? ")
       gem 'activeadmin', '~> 3.2', '>= 3.2.1'
-
       run "bundle install"
       generate "active_admin:install"
       run "bundle exec rails db:create"
@@ -192,7 +185,6 @@ def copy_templates
   copy_file ".github/PULL_REQUEST_TEMPLATE.md"
   copy_file "lib/tasks/annotate.rake"
   copy_file "lib/tasks/lint.rake"
-  copy_file "lib/templates/active_record/migration/create_table_migration.rb.tt"
 end
 
 def error_pages
@@ -290,16 +282,12 @@ def setup_staging
 end
 
 def add_node_version
-
-  run "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash"
-
   command = "curl -L https://github.com/nodejs/node/releases\?q\=lts\&expanded\=true"
   Open3.popen3(command) do |stdin, stdout, stderr, wait_thr|
     version = stdout.read.scan(/Version [0-9]+\.[0-9]+\.[0-9]+/).first
     version_number = version.match(/[0-9]+\.[0-9]+\.[0-9]+/)[0] if version
     File.write('.node-version', version_number) if version_number
   end
-
 end
 
 def add_smtp_setting
