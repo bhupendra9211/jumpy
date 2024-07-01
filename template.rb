@@ -64,6 +64,7 @@ def add_gems
     add_gem 'rubocop-rails', '~> 2.23', '>= 2.23.1', group: [:development]
     add_gem 'rubocop-performance', '~> 1.20', '>= 1.20.2', group: [:development]
     add_gem 'rubocop-rspec', '~> 2.26', '>= 2.26.1', group: [:development]
+    add_gem 'robocop-factory_bot', '~>2.25', '>=2.25.1', group: [:development]
     add_gem "annotate", '~> 3.2', group: [:development]
     add_gem 'erb_lint', '~> 0.5.0', group: [:development]
     add_gem 'letter_opener', '~> 1.9', group: [:development]
@@ -77,6 +78,7 @@ def add_yarn_packages
 end
 
 def add_yup_validation
+
   create_file 'app/javascript/validation.js', <<~JS
   import { object, string } from 'yup';
 
@@ -154,12 +156,11 @@ def add_users
 
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
-    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string")
-    #, after: :id
+    gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string,after: :id")
 
 
     
-    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", after: "devise :database_authenticatable\n")
+    inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", before: "devise :database_authenticatable\n")
 
     if yes?("Would you like to add active admin for admin features ? ")
       gem 'activeadmin', '~> 3.2', '>= 3.2.1'
