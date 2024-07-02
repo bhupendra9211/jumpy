@@ -100,7 +100,6 @@ def add_yup_validation
             // Form data is valid, continue with form submission
             form.submit();
           } catch (error) {
-            // Handle validation errors
             console.error('Validation Error:', error);
             // Display validation errors to the user
           }
@@ -348,7 +347,6 @@ after_bundle do
   add_yarn_packages
   add_yup_validation
   add_yup_integration
-
 
   set_application_name
 
