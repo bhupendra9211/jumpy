@@ -72,6 +72,7 @@ def add_yarn_packages
 end
 
 def add_yup_validation
+
   create_file 'app/javascript/validation.js', <<~JS
   import { object, string } from 'yup';
   document.addEventListener('DOMContentLoaded', () => {
@@ -145,7 +146,6 @@ def add_users
     rails_command "g migration AddUidTo#{@model_name.capitalize}s uid:string:uniq"
     rails_command "g migration AddSlugTo#{@model_name.capitalize}s slug:uniq"
     gsub_file(Dir["db/migrate/**/*uid_to_#{@model_name.downcase}s.rb"].first, /:uid, :string/, ":uid, :string,after: :id")
-
     inject_into_file("app/models/#{@model_name.downcase}.rb", "  include Uid\n  has_paper_trail\n", before: "devise :database_authenticatable\n")
 
     if yes?("Would you like to add active admin for admin features ? ")
@@ -304,7 +304,6 @@ end
 unless rails_7_or_newer?
   puts "Please update Rails to 7.0.5 or newer to create a application through jumpy"
 end
-
 
 add_template_repository_to_source_path
 add_node_version
